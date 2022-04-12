@@ -1,5 +1,6 @@
 library(data.table)
 library(ggplot2)
+library(foreach)
 election<-fread("resultats-par-niveau-subcom-t1-france-entiere.txt",header = F,dec=",")
 colnames(election)<-c("dep_num","dep","com_num","commune","etat_saisi","inscrits","abstention","abs_inscr","votants","vote_inscr","blancs","blancs_inscr","blancs_vote","nuls","nuls_inscr","nuls_vote","exprime","exprime_inscr","exprime_vote",paste(rep(c("num","s","Nom","Prenom","voix","voix_inscr","voix_expr"),12),rep(LETTERS[1:12],each=7),sep="_"))#,rep(c("","8"),12)
 
@@ -17,8 +18,8 @@ candidats<-foreach(col=c(paste0("_",LETTERS[1:12]),"blanc"),.combine = rbind,.mu
     dt_res<-election[,..colcom]
     dt_res$num<-13
     dt_res$s<-"B"
-    dt_res$Nom<-"1_Blanc+nul"
-    dt_res$Prenom<-"  "
+    dt_res$Nom<-"Blanc+nul"
+    dt_res$Prenom<-""
     dt_res$voix<- dt_res$blancs + dt_res$nuls
     dt_res$voix_inscr<-dt_res$voix / dt_res$inscrits
     dt_res$voix_expr<-dt_res$voix / dt_res$exprime
@@ -32,6 +33,9 @@ candidats<-candidats[order(dep_num,com_num)]
 candidats[,nom_complet:=paste(Prenom , Nom)]
 candidats[,voix_votans:=round((voix/votants)*100,2)]
 candidats[,nom_complet_pour:=paste(Prenom , Nom,"=",voix_votans,"%")]
+
+#write.table(candidats,"Donnees_elections_formatee.csv",row.names = F)
+
 
 plot_commune<-function(name){
   commune_data<-candidats[commune==name,]
